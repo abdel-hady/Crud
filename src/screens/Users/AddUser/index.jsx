@@ -28,14 +28,14 @@ export const AddUser = () => {
   const { mutate, isLoading } = useUsersData({ first_name, email, gender });
 
   const onSubmit = async (data) => {
-    await mutate(data)
-      .then(() => {
-        reset();
-        navigate("/users");
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    try {
+      await mutate(data);
+
+      reset();
+      navigate("/users");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
