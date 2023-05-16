@@ -1,4 +1,4 @@
-import { useAuth } from "../../components/auth/auth";
+import { useAuth } from "../../components/auth/auth-context";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -9,12 +9,18 @@ import {
   Typography,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 export const Login = () => {
+  const schema = yup.object({
+    username: yup.string().required("username is required"),
+  });
   const { register, formState, handleSubmit, watch } = useForm({
     defaultValues: {
       username: "",
     },
+    resolver: yupResolver(schema),
   });
   const { errors } = formState;
   const auth = useAuth();
@@ -22,8 +28,7 @@ export const Login = () => {
   const location = useLocation();
   const redirectPath = location.state?.path || "/users";
   const onSubmit = () => {
-    console.log(username);
-    auth.login(username);
+    auth.login({username});
     navigate(redirectPath);
   };
   const username = watch("username");
@@ -56,9 +61,7 @@ export const Login = () => {
             sx={{ width: "400px" }}
             label="Username"
             type="username"
-            {...register("username", {
-              required: "First name is required",
-            })}
+            {...register("username")}
             value={username}
             error={!!errors.username}
             helperText={errors.username?.message}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -9,9 +9,20 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { request } from "../../../utils/axios-utils";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation, useQuery } from "react-query";
+import { client } from "../../../utils/api-client";
 
 export const EditUser = () => {
+  const schema = yup.object({
+    first_name: yup.string().required("First name is required"),
+    email: yup
+      .string()
+      .email("Email format is not valid")
+      .required("Email is required"),
+    gender: yup.string().required("gender is required"),
+  });
   const { id } = useParams();
   const navigate = useNavigate();
   const {
@@ -26,43 +37,33 @@ export const EditUser = () => {
       email: "",
       gender: "",
     },
+    resolver: yupResolver(schema),
   });
-  const [loading, setLoading] = useState(false);
   const first_name = watch("first_name", "");
   const email = watch("email", "");
   const gender = watch("gender", "");
+  const { data: user } = useQuery(`/users/${id}`, () => client(`users/${id}`), {
+    enabled: !!id,
+  });
+
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const response = await request({ url: `/users/${id}`, method: "get" });
-        const user = response.data;
-        reset(user);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        console.error(error);
-      }
-    };
-    fetchUser();
-  }, [id, reset]);
+    if (user) {
+      reset(user);
+    }
+  }, [user, reset]);
+
+  const { mutate } = useMutation((data) =>
+    client(`users/${id}`, { data, method: "PUT" })
+  );
 
   const onSubmit = async ({ first_name, email, gender }) => {
-    
-      setLoading(true);
-      await request({
-        url: `/users/${id}`,
-        method: "put",
-        data: { first_name, email, gender },
-      }).then(()=>{
-        setLoading(false);
-        reset();
-        navigate("/users");
-      }).catch (error=>{
-        setLoading(false);
-        console.error(error);
-      }) 
-    
+    try {
+      await mutate({ first_name, email, gender });
+      reset();
+      navigate("/users");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -97,9 +98,7 @@ export const EditUser = () => {
             <TextField
               label="First Name"
               type="text"
-              {...register("first_name", {
-                required: "First name is required",
-              })}
+              {...register("first_name")}
               value={first_name}
               error={!!errors.first_name}
               helperText={errors.first_name?.message}
@@ -108,9 +107,7 @@ export const EditUser = () => {
               label="Email"
               type="email"
               defaultValue={reset.email}
-              {...register("email", {
-                required: "Email is required",
-              })}
+              {...register("email")}
               value={email}
               error={!!errors.email}
               helperText={errors.email?.message}
@@ -118,20 +115,13 @@ export const EditUser = () => {
             <TextField
               label="Gender"
               type="text"
-              {...register("gender", {
-                required: "Gender is required",
-              })}
+              {...register("gender")}
               value={gender}
               error={!!errors.gender}
               helperText={errors.gender?.message}
             />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Save"}
+            <Button type="submit" variant="contained" color="primary">
+              Save
             </Button>
           </Stack>
         </Box>

@@ -1,5 +1,4 @@
 import { Route, Routes } from "react-router-dom";
-import { Home } from "./screens/Home";
 
 import { Profile } from "./screens/Profile";
 import { Users } from "./screens/Users";
@@ -10,7 +9,6 @@ import { NoMatch } from "./screens/NoMatch";
 export const AuthenticatedApp = () => {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
       <Route path="profile" element={<Profile />} />
       <Route path="users" element={<Users />} />
       <Route path="add-user" element={<AddUser />} />

@@ -1,12 +1,22 @@
 import { Button } from "@mui/material";
-import { useDeleteUsers } from "../../Hooks/useUsersData";
+import { useQueryClient, useMutation } from "react-query";
+import { client } from "../../utils/api-client";
 
 export const DeleteButton = ({ selectedFlatRows }) => {
-  const { mutateAsync, isLoading } = useDeleteUsers();
+  const queryClient = useQueryClient();
+  const { mutateAsync, isLoading } = useMutation(
+    (ids) => client(`users/${ids.join(",")}`, { method: "DELETE" }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("users");
+      },
+    }
+  );
 
   const handleDelete = async () => {
     try {
-      await mutateAsync(selectedFlatRows.map((row) => row.original.id));
+      const ids = selectedFlatRows.map((row) => row.original.id);
+      await mutateAsync(ids);
     } catch (error) {
       console.error(error);
     }

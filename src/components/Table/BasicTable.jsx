@@ -1,7 +1,4 @@
-import { useMemo } from "react";
 import { useTable, usePagination } from "react-table";
-import db from "../../../db.json";
-import { COLUMNS } from "../columns";
 import { useRowSelect } from "react-table/dist/react-table.development";
 import {
   Checkbox,
@@ -11,25 +8,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
 } from "@mui/material";
-import { NavLink } from "react-router-dom";
 import { Pagination } from "./pagination";
 import { StyledTableCell } from "./StyledTable";
-import { DeleteButton } from "./DeleteButton";
 import { TableContaint } from "./TableContaint";
-export const PaginationTable = () => {
-  const navLinkStyles = ({ isActive }) => {
-    return {
-      textDecoration: "none",
-      color: isActive ? "#001abede" : "#eee",
-      borderBottom: isActive ? "2px solid #001abede" : "#eee",
-      padding: "10px",
-    };
-  };
-  const columns = useMemo(() => COLUMNS, []);
-  const data = useMemo(() => db.users, []);
+import { useEffect } from "react";
 
+export const PaginationTable = ({ data, columns, onSelectedRowsChange }) => {
   const {
     getTableProps,
     getTableBodyProps,
@@ -51,7 +36,6 @@ export const PaginationTable = () => {
       columns,
       data,
     },
-
     usePagination,
     useRowSelect,
     (hooks) => {
@@ -71,33 +55,17 @@ export const PaginationTable = () => {
       });
     }
   );
-
+  useEffect(() => {
+    onSelectedRowsChange(selectedFlatRows);
+  }, [selectedFlatRows, onSelectedRowsChange]);
   const { pageIndex, pageSize } = state;
   return (
     <>
-      <Stack
-        spacing={4}
-        direction="row"
-        sx={{ display: "flex", justifyContent: "flex-end", mx: 4 }}
-      >
-        <DeleteButton selectedFlatRows={selectedFlatRows} />
-        <Typography
-          variant="h6"
-          sx={{
-            bgcolor: "#1976d2",
-            borderRadius: "6px",
-            color: "#eee",
-            mb: 1,
-          }}
-        >
-          <NavLink style={navLinkStyles} variant="Link" to="/add-user">
-            Add User
-          </NavLink>
-        </Typography>
-      </Stack>
-
       <Stack>
-        <TableContainer component={Paper} sx={{ width: "95%", margin: "auto" }}>
+        <TableContainer
+          component={Paper}
+          sx={{ width: "95%", margin: "30px auto" }}
+        >
           <Table aria-label="customized table" {...getTableProps()}>
             <TableHead>
               {headerGroups.map((headerGroup) => (

@@ -8,8 +8,19 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useUsersData } from "../../../Hooks/useUsersData";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { client } from "../../../utils/api-client";
+import { useMutation } from "react-query";
 export const AddUser = () => {
+  const schema = yup.object({
+    first_name: yup.string().required("First name is required"),
+    email: yup
+      .string()
+      .email("Email format is not valid")
+      .required("Email is required"),
+    gender: yup.string().required("gender is required"),
+  });
   const navigate = useNavigate();
   const form = useForm({
     defaultValues: {
@@ -17,15 +28,20 @@ export const AddUser = () => {
       email: "",
       gender: "",
     },
+    resolver: yupResolver(schema),
   });
-
   const { register, handleSubmit, watch, formState, reset } = form;
   const first_name = watch("first_name", "");
   const email = watch("email", "");
   const gender = watch("gender", "");
 
   const { errors } = formState;
-  const { mutate, isLoading } = useUsersData({ first_name, email, gender });
+  const { mutate, isLoading } = useMutation(({ first_name, email, gender }) =>
+    client(`users`, {
+      method: "POST",
+      data: { first_name, email, gender },
+    })
+  );
 
   const onSubmit = async (data) => {
     try {
@@ -66,9 +82,7 @@ export const AddUser = () => {
             <TextField
               label="F-name"
               type="first_name"
-              {...register("first_name", {
-                required: "First name is required",
-              })}
+              {...register("first_name")}
               value={first_name}
               error={!!errors.first_name}
               helperText={errors.first_name?.message}
@@ -76,9 +90,7 @@ export const AddUser = () => {
             <TextField
               label="Email"
               type="email"
-              {...register("email", {
-                required: "Email name is required",
-              })}
+              {...register("email")}
               value={email}
               error={!!errors.email}
               helperText={errors.email?.message}
@@ -86,9 +98,7 @@ export const AddUser = () => {
             <TextField
               label="gender"
               type="gender"
-              {...register("gender", {
-                required: "gender is required",
-              })}
+              {...register("gender")}
               value={gender}
               error={!!errors.gender}
               helperText={errors.gender?.message}

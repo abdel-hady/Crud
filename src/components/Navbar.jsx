@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "./auth/auth";
+import { useAuth } from "./auth/auth-context";
 import { AppBar, Button, Stack, Toolbar, Typography } from "@mui/material";
 
 export const Navbar = () => {
